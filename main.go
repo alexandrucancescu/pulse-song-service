@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"pulse-song-service/config"
+	"pulse-song-service/poster"
 	"pulse-song-service/service"
 	"pulse-song-service/watcher"
 )
@@ -67,10 +68,10 @@ func run(stop <-chan struct{}) {
 		log.Printf("  endpoint #%d: %s (postKey=%s)", i+1, ep.URL, ep.PostKey)
 	}
 
-	// Watch the file for changes. For now, just log the content.
-	// HTTP posting will be added in the next step.
+	// Watch the file for changes and post content to all endpoints.
 	err = watcher.Watch(cfg.File, func(content string) {
 		log.Printf("file changed to: %s", content)
+		poster.PostToAll(cfg.Endpoints, content)
 	}, stop)
 	if err != nil {
 		log.Printf("ERROR: watcher failed: %v", err)

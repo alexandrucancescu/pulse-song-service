@@ -48,7 +48,6 @@ func Watch(filePath string, onChange OnChangeFunc, stop <-chan struct{}) error {
 			if !ok {
 				return nil
 			}
-			// Only react to writes (file content changed).
 			if !event.Has(fsnotify.Write) {
 				continue
 			}
