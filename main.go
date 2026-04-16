@@ -11,14 +11,14 @@ import (
 
 	"pulse-song-service/config"
 	"pulse-song-service/poster"
-	"pulse-song-service/service"
+	svc "pulse-song-service/service"
 	"pulse-song-service/watcher"
 )
 
 func main() {
 	// Handle service commands: install, uninstall, start, stop.
 	if len(os.Args) > 1 {
-		if err := service.HandleCommand(os.Args[1]); err != nil {
+		if err := svc.HandleCommand(os.Args[1]); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
@@ -36,21 +36,26 @@ func main() {
 		close(stop)
 	}()
 
-	service.Run(run, stop)
+	svc.Run(run, stop)
 }
 
 // run is the main app logic. It runs until the stop channel is closed.
 func run(stop <-chan struct{}) {
 	appDir := getAppDir()
 
-	// Set up logging: recreate the log file on each run, write to both file and stdout.
+	// Set up logging: recreate the log file on each run.
+	// Write to both file and stdout in interactive mode, file only as a service.
 	logFile, err := os.Create(filepath.Join(appDir, "pulse-song-service.log"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create log file: %v\n", err)
 		return
 	}
 	defer logFile.Close()
-	log.SetOutput(io.MultiWriter(os.Stdout, logFile))
+	if svc.IsInteractive() {
+		log.SetOutput(io.MultiWriter(os.Stdout, logFile))
+	} else {
+		log.SetOutput(logFile)
+	}
 	log.SetFlags(log.Ldate | log.Ltime)
 
 	log.Println("starting pulse-song-service")

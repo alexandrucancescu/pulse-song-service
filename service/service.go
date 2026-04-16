@@ -119,6 +119,11 @@ func HandleCommand(cmd string) error {
 	}
 }
 
+// IsInteractive returns true when running from a terminal (not as a Windows service).
+func IsInteractive() bool {
+	return service.Interactive()
+}
+
 // Run starts the app. If running as a Windows service, it uses the service handler.
 // Otherwise it calls runFunc directly (development / manual execution).
 func Run(runFunc RunFunc, stop <-chan struct{}) {
