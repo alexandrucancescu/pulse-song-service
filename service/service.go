@@ -2,6 +2,8 @@ package service
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"runtime"
 
 	"github.com/kardianos/service"
@@ -23,6 +25,15 @@ type program struct {
 }
 
 func (p *program) Start(s service.Service) error {
+	// When running as a Windows service, the working directory is C:\Windows\System32.
+	// Change to the executable's directory so config.json and logs are found.
+	if !service.Interactive() {
+		exe, err := os.Executable()
+		if err == nil {
+			os.Chdir(filepath.Dir(exe))
+		}
+	}
+
 	p.stop = make(chan struct{})
 	p.done = make(chan struct{})
 	go func() {
