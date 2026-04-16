@@ -11,6 +11,7 @@ import (
 
 	"pulse-song-service/config"
 	"pulse-song-service/service"
+	"pulse-song-service/watcher"
 )
 
 func main() {
@@ -66,9 +67,16 @@ func run(stop <-chan struct{}) {
 		log.Printf("  endpoint #%d: %s (postKey=%s)", i+1, ep.URL, ep.PostKey)
 	}
 
-	// TODO: file watcher and HTTP posting will go here in the next step.
-	log.Println("config loaded successfully — waiting for stop signal")
-	<-stop
+	// Watch the file for changes. For now, just log the content.
+	// HTTP posting will be added in the next step.
+	err = watcher.Watch(cfg.File, func(content string) {
+		log.Printf("file changed to: %s", content)
+	}, stop)
+	if err != nil {
+		log.Printf("ERROR: watcher failed: %v", err)
+		return
+	}
+
 	log.Println("shutting down")
 }
 
